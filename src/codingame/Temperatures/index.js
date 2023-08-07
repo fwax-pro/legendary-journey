@@ -8,7 +8,8 @@ function numberPositiveCloserToZero(arr, current = null) {
         return 0
     }
     if(current === null || 
-        Math.abs(test) < Math.abs(current)
+        Math.abs(test) < Math.abs(current) ||
+        Math.abs(test) === Math.abs(current) && current < 0
     ) {
         return numberPositiveCloserToZero(arr, test)
     }
