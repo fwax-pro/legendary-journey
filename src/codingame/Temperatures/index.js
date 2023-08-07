@@ -2,14 +2,13 @@ function numberPositiveCloserToZero(arr, current = null) {
     if(arr.length === 0) {
         return current === null ? 0 : current;
     }
-
+    
     const test = arr.pop();
-    if(parseInt(test) === NaN) {
+    if( Number.isNaN(parseInt(test))) {
         return 0
     }
     if(current === null || 
-        Math.abs(test) < Math.abs(current) || 
-        test < 0 && Math.abs(test) < Math.abs(current)
+        Math.abs(test) < Math.abs(current)
     ) {
         return numberPositiveCloserToZero(arr, test)
     }
