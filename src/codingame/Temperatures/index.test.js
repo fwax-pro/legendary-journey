@@ -9,9 +9,9 @@ describe('CodinGame: Temperatures', function () {
         assert.strictEqual(result, expect);
     });
 
-    it('simple data', function () {
-        const arr = [ '1', '-2', '-8', '4', '5' ];
-        const expect = '1';
+    it('no temperatures', function () {
+        const arr = [ ' ' ];
+        const expect = 0;
         const result = numberPositiveCloserToZero(arr);
         assert.strictEqual(result, expect);
     });
