@@ -30,6 +30,18 @@ describe('CodinGame: Temperatures', function () {
         assert.strictEqual(result, expect);
     });
 
+    it('complex data', function () {
+        const arr = [
+            '-5', '-4',  '-2',
+            '12', '-40', '4',
+            '2',  '18',  '11',
+            '5'
+        ];
+        const expect = '2';
+        const result = numberPositiveCloserToZero(arr);
+        assert.strictEqual(result, expect);
+    });
+
     it('no temperatures', function () {
         const arr = [''];
         const expect = 0;
