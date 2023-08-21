@@ -24,8 +24,34 @@ function isInArray(arr, node) {
     return false;
 }
 
-function getNeighbors(datas, node, close, open) {
+function checkIfCommandRoomBlock(datas, node) {
+   let total = 0;
+   if(node.char === 'C') {
+       if(datas[`${node.y}-${node.x+1}`].char === '#' || datas[`${node.y}-${node.x+1}`].char === '?'){
+           total++;
+       }
+       if(datas[`${node.y}-${node.x-1}`].char === '#' || datas[`${node.y}-${node.x-1}`].char === '?'){
+           total++;
+       }
+       if(datas[`${node.y+1}-${node.x}`].char === '#' || datas[`${node.y+1}-${node.x}`].char === '?'){
+           total++;
+       }
+       if(datas[`${node.y-1}-${node.x}`].char === '#' || datas[`${node.y-1}-${node.x}`].char === '?'){
+           total++;
+       }
+   }
+   
+   if(total >= 3) {
+       return true
+   }
+   return false
+}
+
+function getNeighbors(datas, node, close, open, isComeBack) {
     const neightbors = [];
+    if(!isComeBack && checkIfCommandRoomBlock(datas, node)) {
+       return neightbors
+    }
     // RIGHT
     if(datas[`${node.y}-${node.x+1}`] &&
         datas[`${node.y}-${node.x+1}`].char !== '#' && 
@@ -285,7 +311,6 @@ function reconstructPath(node) {
 
 function aStar(start, target, datas, type = 'default') {
    console.error('aStar')
-   //console.error('target', target)
    start.gCost = 0;
    start.hCost = manhattanDistance(start, target);
    start.fCost = start.gCost + start.hCost;
@@ -309,11 +334,9 @@ function aStar(start, target, datas, type = 'default') {
            }
        }
        open.splice(index,1);
-       //console.error('currentNode', currentNode)
        // add current to closedSet
        close.push(currentNode);
        if(currentNode.x === target.x && currentNode.y === target.y) {
-           //console.error('end', currentNode)
            return reconstructPath(currentNode);
        }
        
@@ -333,7 +356,7 @@ function aStar(start, target, datas, type = 'default') {
    return [];
 }
 
-function BFS(start, datas) {
+function BFS(start, datas, isComeBack) {
     start.cost = 0;
     let open = [start];
     const close = [];
@@ -355,7 +378,7 @@ function BFS(start, datas) {
        open.splice(index,1);
         close.push(currentNode);
         if(currentNode.char !== '?') {
-            const neighbors = getNeighbors(datas, currentNode, close, open);
+            const neighbors = getNeighbors(datas, currentNode, close, open, isComeBack);
             open = open.concat(neighbors);
         }
     }
@@ -384,14 +407,11 @@ while (true) {
    // CR2ATION DU GRAPH 
    const currentNode = datas[`${KR}-${KC}`];
    let nextNode = null;
-   const nodes = BFS(currentNode, datas);
+   const nodes = BFS(currentNode, datas, currentNode.char === 'C');
    nodes.sort((a,b) => a.cost - b.cost);
-   //console.error('BFS', nodes)
    
    const exclamationMark = nodes.find(node => node.char === '?');
    const exclamationMarks = nodes.filter(node => node.char === '?');
-   console.error('exclamationMarks', exclamationMarks, exclamationMarks.length)
-   //console.error('exclamationMark', exclamationMark)
    const commandRoom = nodes.find(node => node.char === 'C');
    const start = nodes.find(node => node.char === 'T');
    
@@ -407,7 +427,6 @@ while (true) {
    }
 
    if(pathCurrent === null || pathCurrent.length === 0) {
-       console.error('commandRoom', commandRoom)
        if(!isComeBack && (exclamationMarks.length > 1 && commandRoom || exclamationMark && !commandRoom)) {
            console.error('exclamationMark', exclamationMark)
            pathCurrent = aStar(currentNode, exclamationMark, datas, 'exclamation');
@@ -420,9 +439,6 @@ while (true) {
            console.error('start')
            pathCurrent = aStar(currentNode, start, datas, 'start');
        }
-       //console.error('start', start);
-       //console.error('currentNode', currentNode);
-       console.error('pathCurrent', pathCurrent);
        pathCurrent.shift();
     }
    
