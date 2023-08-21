@@ -141,6 +141,73 @@ function getNeighborsForAStar(datas, node, target, close, open, strict) {
    return neightbors
 }
 
+function getNeighborsForAStarV3(datas, node, target, close, open) {
+   const neightbors = [];
+   const tentativeGCost = node.gCost + 1;
+   
+   // RIGHT
+   if(datas[`${node.y}-${node.x+1}`] &&
+       datas[`${node.y}-${node.x+1}`].char !== '#' &&
+       datas[`${node.y}-${node.x+1}`].char !== 'C' && 
+       (!isInArray(close, datas[`${node.y}-${node.x+1}`]) || tentativeGCost < datas[`${node.y}-${node.x+1}`].gCost) &&
+       !isInArray(open, datas[`${node.y}-${node.x+1}`])) {
+       
+       
+       const tempNode = datas[`${node.y}-${node.x+1}`];
+       tempNode.gCost = tentativeGCost;
+       tempNode.hCost = manhattanDistance(tempNode, target);
+       tempNode.fCost = tempNode.gCost + tempNode.hCost;
+       tempNode.parent = node;
+       neightbors.push(tempNode);
+   }
+
+   // DOWN
+   if(datas[`${node.y+1}-${node.x}`] &&
+       datas[`${node.y+1}-${node.x}`].char !== '#' &&
+       datas[`${node.y+1}-${node.x}`].char !== 'C' && 
+       (!isInArray(close, datas[`${node.y+1}-${node.x}`]) || tentativeGCost < datas[`${node.y+1}-${node.x}`].gCost) && 
+       !isInArray(open, datas[`${node.y+1}-${node.x}`])) {
+
+       const tempNode = datas[`${node.y+1}-${node.x}`];
+       tempNode.gCost = tentativeGCost;
+       tempNode.hCost = manhattanDistance(tempNode, target);
+       tempNode.fCost = tempNode.gCost + tempNode.hCost;
+       tempNode.parent = node;
+       neightbors.push(tempNode);
+   }
+
+   // LEFT
+   if(datas[`${node.y}-${node.x-1}`] &&
+       datas[`${node.y}-${node.x-1}`].char !== '#' &&
+       datas[`${node.y}-${node.x-1}`].char !== 'C' && 
+       (!isInArray(close, datas[`${node.y}-${node.x-1}`]) || tentativeGCost < datas[`${node.y}-${node.x-1}`].gCost) &&
+       !isInArray(open, datas[`${node.y}-${node.x-1}`])) {
+
+       const tempNode = datas[`${node.y}-${node.x-1}`];
+       tempNode.gCost = tentativeGCost;
+       tempNode.hCost = manhattanDistance(tempNode, target);
+       tempNode.fCost = tempNode.gCost + tempNode.hCost;
+       tempNode.parent = node;
+       neightbors.push(tempNode);
+   }
+
+   // UP
+   if(datas[`${node.y-1}-${node.x}`] &&
+       datas[`${node.y-1}-${node.x}`].char !== '#' &&
+       datas[`${node.y-1}-${node.x}`].char !== 'C' && 
+       (!isInArray(close, datas[`${node.y-1}-${node.x}`]) || tentativeGCost < datas[`${node.y-1}-${node.x}`].gCost) &&
+       !isInArray(open, datas[`${node.y-1}-${node.x}`])) {
+       const tempNode = datas[`${node.y-1}-${node.x}`];
+       tempNode.gCost = tentativeGCost;
+       tempNode.hCost = manhattanDistance(tempNode, target);
+       tempNode.fCost = tempNode.gCost + tempNode.hCost;
+       tempNode.parent = node;
+       neightbors.push(tempNode);
+   }
+
+   return neightbors
+}
+
 function getNeighborsForAStarV2(datas, node, target, close, open) {
    const neightbors = [];
    const tentativeGCost = node.gCost + 1;
@@ -216,7 +283,7 @@ function reconstructPath(node) {
    return path;
 }
 
-function aStar(start, target, datas, strict = false) {
+function aStar(start, target, datas, type = 'default') {
    console.error('aStar')
    //console.error('target', target)
    start.gCost = 0;
@@ -235,12 +302,14 @@ function aStar(start, target, datas, strict = false) {
            // On regarde si le cout F est plus grand ou plus petit du node actuelle
            if (open[i].fCost < currentNode.fCost)
            {
-               index = i;
-               currentNode = open[i];
+               if(open[i].hCost < currentNode.hCost) {
+                   index = i;
+                   currentNode = open[i];
+               }
            }
        }
        open.splice(index,1);
-       console.error('currentNode', currentNode)
+       //console.error('currentNode', currentNode)
        // add current to closedSet
        close.push(currentNode);
        if(currentNode.x === target.x && currentNode.y === target.y) {
@@ -250,8 +319,10 @@ function aStar(start, target, datas, strict = false) {
        
        if(currentNode.char !== '?') {
            let neighbors = [];
-           if(strict) {
+           if(type === 'start') {
                neighbors = getNeighborsForAStarV2(datas, currentNode, target, close, open)
+           } else if(type === 'exclamation') {
+               neighbors = getNeighborsForAStarV3(datas, currentNode, target, close, open)
            } else {
                neighbors = getNeighborsForAStar(datas, currentNode, target, close, open);
            }
@@ -268,7 +339,20 @@ function BFS(start, datas) {
     const close = [];
 
     while(open.length !== 0) {
-        const currentNode = open.pop();
+       
+       //const currentNode = open.pop();
+       let currentNode = open[0];
+       let index = 0;
+       for (let i = 0; i < open.length; i++)
+       {
+           // On regarde si le cout F est plus grand ou plus petit du node actuelle
+           if (open[i].cost < currentNode.cost)
+           {
+               index = i;
+               currentNode = open[i];   
+           }
+       }
+       open.splice(index,1);
         close.push(currentNode);
         if(currentNode.char !== '?') {
             const neighbors = getNeighbors(datas, currentNode, close, open);
@@ -287,7 +371,7 @@ while (true) {
     
     for (let i = 0; i < R; i++) {
        const ROW = readline(); // C of the characters in '#.TC?' (i.e. one line of the ASCII maze).
-       //console.error('ROW', ROW);
+       console.error('ROW', ROW);
        ROW.split('').forEach((char, index) => {
             datas[`${i}-${index}`] = {
                 char,
@@ -305,11 +389,13 @@ while (true) {
    //console.error('BFS', nodes)
    
    const exclamationMark = nodes.find(node => node.char === '?');
-   console.error('exclamationMark', exclamationMark)
+   const exclamationMarks = nodes.filter(node => node.char === '?');
+   console.error('exclamationMarks', exclamationMarks, exclamationMarks.length)
+   //console.error('exclamationMark', exclamationMark)
    const commandRoom = nodes.find(node => node.char === 'C');
    const start = nodes.find(node => node.char === 'T');
    
-   if(!exclamationMark && commandRoom && currentNode.x === commandRoom.x && currentNode.y === commandRoom.y) {
+   if(commandRoom && currentNode.x === commandRoom.x && currentNode.y === commandRoom.y) {
        isComeBack = true;
        pathCurrent = [];
    }
@@ -317,20 +403,22 @@ while (true) {
    if(pathCurrent && pathCurrent.length > 0) {
        nextNode = datas[`${pathCurrent[0].y}-${pathCurrent[0].x}`];
        if(nextNode.char === '#') pathCurrent = []
+       if(exclamationMark && nextNode.char === 'C') pathCurrent = []
    }
 
    if(pathCurrent === null || pathCurrent.length === 0) {
-       if(!isComeBack && exclamationMark) {
-           console.error('exclamationMark')
-           pathCurrent = aStar(currentNode, exclamationMark, datas);
+       console.error('commandRoom', commandRoom)
+       if(!isComeBack && (exclamationMarks.length > 1 && commandRoom || exclamationMark && !commandRoom)) {
+           console.error('exclamationMark', exclamationMark)
+           pathCurrent = aStar(currentNode, exclamationMark, datas, 'exclamation');
        } 
-       else if(!exclamationMark && commandRoom && !isComeBack) {
+       else if(exclamationMarks.length <= 1 && commandRoom && !isComeBack) {
            console.error('commandRoom')
            pathCurrent = aStar(currentNode, commandRoom, datas);
        }  
        else {
            console.error('start')
-           pathCurrent = aStar(currentNode, start, datas, true);
+           pathCurrent = aStar(currentNode, start, datas, 'start');
        }
        //console.error('start', start);
        //console.error('currentNode', currentNode);
@@ -342,7 +430,7 @@ while (true) {
    const vy = pathCurrent[0].y - currentNode.y;
     
    pathCurrent.shift();
-    
+
    if(vx > 0) {
        console.log('RIGHT');
    } else if(vx < 0) {
@@ -352,4 +440,4 @@ while (true) {
    } else if(vy < 0) {
        console.log('UP');
    }
-}
+} 
